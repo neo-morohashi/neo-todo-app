@@ -1,9 +1,13 @@
+from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from pathlib import Path
+from typing import Optional
 import re
+import subprocess
+import threading
 from datetime import date
 
 TASKS_DIR = Path("/Users/neo/tasks")
@@ -14,14 +18,44 @@ PROJECTS_DIR = TASKS_DIR / "projects"
 app = FastAPI()
 
 
+# --- Git sync ---
+
+def git_pull():
+    try:
+        subprocess.run(["git", "pull", "--rebase"], cwd=TASKS_DIR,
+                       capture_output=True, timeout=10)
+    except Exception:
+        pass
+
+
+def git_push():
+    try:
+        subprocess.run(["git", "add", "-A"], cwd=TASKS_DIR, capture_output=True)
+        r = subprocess.run(["git", "commit", "-m", f"sync: {date.today()}"],
+                           cwd=TASKS_DIR, capture_output=True)
+        if r.returncode == 0:
+            subprocess.run(["git", "push"], cwd=TASKS_DIR,
+                           capture_output=True, timeout=15)
+    except Exception:
+        pass
+
+
+def sync_bg():
+    threading.Thread(target=git_push, daemon=True).start()
+
+
+@app.on_event("startup")
+def startup():
+    git_pull()
+
+
 # --- Task parsing ---
 
 TASK_RE = re.compile(r"^- \[([ x])\] (.+)$")
-META_RE = re.compile(r"\|(.*)")
 
 
 def parse_meta(meta_str: str) -> dict:
-    meta = {"priority": None, "due": None, "repeat": None}
+    meta: dict = {}
     for part in meta_str.split("|"):
         part = part.strip()
         if re.match(r"P[1-4]$", part):
@@ -35,12 +69,11 @@ def parse_meta(meta_str: str) -> dict:
     return meta
 
 
-def parse_tasks_from_file(filepath: Path, project: str) -> list[dict]:
+def parse_tasks_from_file(filepath: Path, project: str) -> list:
     tasks = []
     if not filepath.exists():
         return tasks
-    lines = filepath.read_text().splitlines()
-    for i, line in enumerate(lines):
+    for i, line in enumerate(filepath.read_text().splitlines()):
         m = TASK_RE.match(line)
         if not m:
             continue
@@ -62,15 +95,16 @@ def parse_tasks_from_file(filepath: Path, project: str) -> list[dict]:
     return tasks
 
 
-def get_all_tasks() -> list[dict]:
+def get_all_tasks() -> list:
     tasks = parse_tasks_from_file(INBOX, "inbox")
     for pfile in sorted(PROJECTS_DIR.glob("*.md")):
-        project = pfile.stem
-        tasks.extend(parse_tasks_from_file(pfile, project))
+        tasks.extend(parse_tasks_from_file(pfile, pfile.stem))
     return tasks
 
 
-def build_task_line(name: str, done: bool, priority: str | None, due: str | None, repeat: str | None, completed: str | None = None) -> str:
+def build_task_line(name: str, done: bool, priority: Optional[str],
+                    due: Optional[str], repeat: Optional[str],
+                    completed: Optional[str] = None) -> str:
     check = "x" if done else " "
     parts = [name]
     if priority:
@@ -116,16 +150,20 @@ def append_task_to_file(filepath: Path, task_line: str):
 class TaskCreate(BaseModel):
     name: str
     project: str = "inbox"
-    priority: str | None = None
-    due: str | None = None
+    priority: Optional[str] = None
+    due: Optional[str] = None
 
 
 class TaskUpdate(BaseModel):
-    name: str | None = None
-    done: bool | None = None
-    priority: str | None = None
-    due: str | None = None
-    project: str | None = None
+    name: Optional[str] = None
+    done: Optional[bool] = None
+    priority: Optional[str] = None
+    due: Optional[str] = None
+    project: Optional[str] = None
+
+
+class ProjectCreate(BaseModel):
+    name: str
 
 
 @app.get("/api/tasks")
@@ -146,6 +184,7 @@ def create_task(body: TaskCreate):
     fp = filepath_for_project(body.project)
     line = build_task_line(body.name, False, body.priority, body.due, None)
     append_task_to_file(fp, line)
+    sync_bg()
     return {"ok": True}
 
 
@@ -163,21 +202,20 @@ def update_task(project: str, line_no: int, body: TaskUpdate):
     new_due = body.due if body.due is not None else task["due"]
     completed = date.today().isoformat() if new_done and not task["done"] else None
 
-    new_line = build_task_line(new_name, new_done, new_priority, new_due, task.get("repeat"), completed)
+    new_line = build_task_line(new_name, new_done, new_priority, new_due,
+                               task.get("repeat"), completed)
 
     if body.project and body.project != project:
-        # Move to different project
         delete_line_in_file(fp, line_no)
         target_fp = filepath_for_project(body.project)
         append_task_to_file(target_fp, new_line)
+    elif new_done and not task["done"]:
+        delete_line_in_file(fp, line_no)
+        append_task_to_file(ARCHIVE, new_line)
     else:
-        if new_done and not task["done"]:
-            # Archive completed task
-            delete_line_in_file(fp, line_no)
-            append_task_to_file(ARCHIVE, new_line)
-        else:
-            update_line_in_file(fp, line_no, new_line)
+        update_line_in_file(fp, line_no, new_line)
 
+    sync_bg()
     return {"ok": True}
 
 
@@ -185,8 +223,44 @@ def update_task(project: str, line_no: int, body: TaskUpdate):
 def delete_task(project: str, line_no: int):
     fp = filepath_for_project(project)
     delete_line_in_file(fp, line_no)
+    sync_bg()
     return {"ok": True}
 
 
-# Static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+@app.post("/api/projects")
+def create_project(body: ProjectCreate):
+    name = re.sub(r"[^\w\-]", "-", body.name.strip())
+    if not name:
+        raise HTTPException(400, "Invalid name")
+    fp = PROJECTS_DIR / f"{name}.md"
+    if not fp.exists():
+        fp.write_text(f"# {body.name}\n\n")
+    sync_bg()
+    return {"name": name}
+
+
+@app.delete("/api/projects/{name}")
+def delete_project(name: str):
+    if name == "inbox":
+        raise HTTPException(400, "Cannot delete inbox")
+    fp = PROJECTS_DIR / f"{name}.md"
+    tasks = parse_tasks_from_file(fp, name)
+    # Move remaining open tasks to inbox
+    for t in tasks:
+        if not t["done"]:
+            line = build_task_line(t["name"], False, t.get("priority"),
+                                   t.get("due"), t.get("repeat"))
+            append_task_to_file(INBOX, line)
+    if fp.exists():
+        fp.unlink()
+    sync_bg()
+    return {"ok": True}
+
+
+# Static
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/")
+def index():
+    return FileResponse("static/index.html")

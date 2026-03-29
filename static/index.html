@@ -4,16 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>neo-todo</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <div id="app">
     <header>
       <h1>neo-todo</h1>
-      <button id="add-btn" onclick="openAddModal()">+ 追加</button>
+      <button id="add-btn" onclick="openAddModal()">+ タスク追加</button>
     </header>
 
-    <nav id="projects-nav"></nav>
+    <nav id="projects-nav">
+      <!-- rendered by JS -->
+    </nav>
 
     <main>
       <div id="task-list"></div>
@@ -24,7 +26,7 @@
   <div id="modal" class="modal hidden">
     <div class="modal-box">
       <h2>タスクを追加</h2>
-      <input id="new-name" type="text" placeholder="タスク名" autofocus>
+      <input id="new-name" type="text" placeholder="タスク名">
       <div class="row">
         <select id="new-project"></select>
         <select id="new-priority">
@@ -67,6 +69,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>
