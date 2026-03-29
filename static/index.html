@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>neo-todo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>neo-todo</h1>
+      <button id="add-btn" onclick="openAddModal()">+ 追加</button>
+    </header>
+
+    <nav id="projects-nav"></nav>
+
+    <main>
+      <div id="task-list"></div>
+    </main>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>タスクを追加</h2>
+      <input id="new-name" type="text" placeholder="タスク名" autofocus>
+      <div class="row">
+        <select id="new-project"></select>
+        <select id="new-priority">
+          <option value="">優先度なし</option>
+          <option value="P1">P1</option>
+          <option value="P2">P2</option>
+          <option value="P3">P3</option>
+          <option value="P4">P4</option>
+        </select>
+        <input id="new-due" type="date">
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeModal()">キャンセル</button>
+        <button class="primary" onclick="addTask()">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>タスクを編集</h2>
+      <input id="edit-name" type="text">
+      <div class="row">
+        <select id="edit-project"></select>
+        <select id="edit-priority">
+          <option value="">優先度なし</option>
+          <option value="P1">P1</option>
+          <option value="P2">P2</option>
+          <option value="P3">P3</option>
+          <option value="P4">P4</option>
+        </select>
+        <input id="edit-due" type="date">
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeEditModal()">キャンセル</button>
+        <button class="danger" onclick="deleteCurrentTask()">削除</button>
+        <button class="primary" onclick="saveEdit()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
