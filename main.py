@@ -1,11 +1,12 @@
 from __future__ import annotations
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from pathlib import Path
 from typing import Optional
 import re
+import json
 import subprocess
 import threading
 from datetime import date
@@ -14,6 +15,7 @@ TASKS_DIR = Path("/Users/neo/tasks")
 INBOX = TASKS_DIR / "inbox.md"
 ARCHIVE = TASKS_DIR / "archive.md"
 PROJECTS_DIR = TASKS_DIR / "projects"
+PROJECTS_CONFIG = TASKS_DIR / "projects.json"
 
 app = FastAPI()
 
@@ -164,6 +166,27 @@ class TaskUpdate(BaseModel):
 
 class ProjectCreate(BaseModel):
     name: str
+    label: Optional[str] = None
+    parent: Optional[str] = None
+
+
+class ProjectUpdate(BaseModel):
+    label: Optional[str] = None
+    parent: Optional[str] = None
+
+
+def load_projects_config() -> list:
+    if PROJECTS_CONFIG.exists():
+        return json.loads(PROJECTS_CONFIG.read_text())
+    # fallback: build from files
+    config = [{"id": "inbox", "label": "Inbox", "parent": None}]
+    for pfile in sorted(PROJECTS_DIR.glob("*.md")):
+        config.append({"id": pfile.stem, "label": pfile.stem, "parent": None})
+    return config
+
+
+def save_projects_config(config: list):
+    PROJECTS_CONFIG.write_text(json.dumps(config, ensure_ascii=False, indent=2))
 
 
 @app.get("/api/tasks")
@@ -173,10 +196,7 @@ def list_tasks():
 
 @app.get("/api/projects")
 def list_projects():
-    projects = ["inbox"]
-    for pfile in sorted(PROJECTS_DIR.glob("*.md")):
-        projects.append(pfile.stem)
-    return projects
+    return load_projects_config()
 
 
 @app.post("/api/tasks")
@@ -232,11 +252,38 @@ def create_project(body: ProjectCreate):
     name = re.sub(r"[^\w\-]", "-", body.name.strip())
     if not name:
         raise HTTPException(400, "Invalid name")
+    label = body.label or body.name
     fp = PROJECTS_DIR / f"{name}.md"
     if not fp.exists():
-        fp.write_text(f"# {body.name}\n\n")
+        fp.write_text(f"# {label}\n\n")
+    config = load_projects_config()
+    if not any(p["id"] == name for p in config):
+        config.append({"id": name, "label": label, "parent": body.parent})
+        save_projects_config(config)
     sync_bg()
     return {"name": name}
+
+
+@app.put("/api/projects")
+async def reorder_projects(request: Request):
+    body = await request.json()
+    save_projects_config(body)
+    sync_bg()
+    return {"ok": True}
+
+
+@app.patch("/api/projects/{name}")
+def update_project(name: str, body: ProjectUpdate):
+    config = load_projects_config()
+    for p in config:
+        if p["id"] == name:
+            if body.label is not None:
+                p["label"] = body.label
+            if body.parent is not None:
+                p["parent"] = body.parent or None
+            break
+    save_projects_config(config)
+    return {"ok": True}
 
 
 @app.delete("/api/projects/{name}")
@@ -253,8 +300,21 @@ def delete_project(name: str):
             append_task_to_file(INBOX, line)
     if fp.exists():
         fp.unlink()
+    config = load_projects_config()
+    config = [p for p in config if p["id"] != name]
+    save_projects_config(config)
     sync_bg()
     return {"ok": True}
+
+
+@app.get("/api/tunnel-url")
+def get_tunnel_url():
+    try:
+        log = Path("/tmp/neo-todo-tunnel.log").read_text()
+        m = re.search(r'https://[\w-]+\.trycloudflare\.com', log)
+        return {"url": m.group(0) if m else None}
+    except Exception:
+        return {"url": None}
 
 
 # Static
@@ -263,4 +323,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def index():
-    return FileResponse("static/index.html")
+    resp = FileResponse("static/index.html")
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp

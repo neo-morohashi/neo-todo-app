@@ -2,24 +2,36 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>neo-todo</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>NEO TODO</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NEO TODO">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1>neo-todo</h1>
-      <button id="add-btn" onclick="openAddModal()">+ タスク追加</button>
-    </header>
-
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>NEO TODO</h1>
+      <a id="tunnel-url" class="tunnel-url hidden" target="_blank"></a>
+    </div>
     <nav id="projects-nav">
       <!-- rendered by JS -->
     </nav>
+  </div>
 
-    <main>
-      <div id="task-list"></div>
-    </main>
+  <div id="main">
+    <div id="main-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="menu-btn" onclick="toggleSidebar()" title="メニュー">☰</button>
+        <h2 id="main-title">すべて</h2>
+      </div>
+      <button id="add-btn" onclick="openAddModal()">+ 追加</button>
+    </div>
+    <div id="task-list"></div>
   </div>
 
   <!-- Add Task Modal -->
@@ -69,6 +81,8 @@
     </div>
   </div>
 
-  <script src="/static/app.js"></script>
+  <button id="fab" onclick="openAddModal()">+</button>
+
+  <script src="/static/app.js?v=12"></script>
 </body>
 </html>
