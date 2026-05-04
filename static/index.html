@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NEO TODO">
-  <link rel="stylesheet" href="/static/style.css?v=13">
+  <link rel="stylesheet" href="/static/style.css?v=28">
 </head>
 <body>
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -18,7 +18,7 @@
       <h1>NEO TODO</h1>
       <a id="tunnel-url" class="tunnel-url hidden" target="_blank"></a>
     </div>
-    <nav id="projects-nav">
+    <nav id="tags-nav">
       <!-- rendered by JS -->
     </nav>
   </div>
@@ -29,7 +29,16 @@
         <button id="menu-btn" onclick="toggleSidebar()" title="メニュー">☰</button>
         <h2 id="main-title">すべて</h2>
       </div>
-      <button id="add-btn" onclick="openAddModal()">+ 追加</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="sort-bar" class="sort-bar">
+          <button class="sort-btn" data-sort="manual" onclick="setSort('manual')" title="自分で並び替えるモード（ドラッグで順番を変更）">⠿ 並び替え</button>
+          <button class="sort-btn" data-sort="added" onclick="setSort('added')" title="追加した順（古い順）">追加</button>
+          <button class="sort-btn" data-sort="due" onclick="setSort('due')" title="期限が早い順">期限</button>
+          <button class="sort-btn" data-sort="priority" onclick="setSort('priority')" title="優先度 P1→P4 順">優先</button>
+          <button class="sort-btn" data-sort="tag" onclick="setSort('tag')" title="タグでグルーピング">タグ</button>
+        </div>
+        <button id="add-btn" onclick="openAddModal()">+ 追加</button>
+      </div>
     </div>
     <div id="task-list"></div>
   </div>
@@ -39,8 +48,12 @@
     <div class="modal-box">
       <h2>タスクを追加</h2>
       <input id="new-name" type="text" placeholder="タスク名">
+      <div class="tag-edit-block">
+        <label>タグ</label>
+        <input id="new-tags" type="text" placeholder="#tag1 #tag2 (スペース区切り)">
+        <div id="new-tags-preview" class="tags-preview"></div>
+      </div>
       <div class="row">
-        <select id="new-project"></select>
         <select id="new-priority">
           <option value="">優先度なし</option>
           <option value="P1">P1</option>
@@ -62,8 +75,12 @@
     <div class="modal-box">
       <h2>タスクを編集</h2>
       <input id="edit-name" type="text">
+      <div class="tag-edit-block">
+        <label>タグ</label>
+        <input id="edit-tags" type="text" placeholder="#tag1 #tag2">
+        <div id="edit-tags-preview" class="tags-preview"></div>
+      </div>
       <div class="row">
-        <select id="edit-project"></select>
         <select id="edit-priority">
           <option value="">優先度なし</option>
           <option value="P1">P1</option>
@@ -75,7 +92,6 @@
       </div>
       <div class="modal-actions">
         <button onclick="closeEditModal()">キャンセル</button>
-        <button class="danger" onclick="deleteCurrentTask()">削除</button>
         <button class="primary" onclick="saveEdit()">保存</button>
       </div>
     </div>
@@ -83,6 +99,6 @@
 
   <button id="fab" onclick="openAddModal()">+</button>
 
-  <script src="/static/app.js?v=12"></script>
+  <script src="/static/app.js?v=28"></script>
 </body>
 </html>

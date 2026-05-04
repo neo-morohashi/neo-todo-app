@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEO TODO – モックアップ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #faf8f5;
+      --sidebar: #f3f0eb;
+      --surface: #ffffff;
+      --border: #e2ddd7;
+      --text: #1a1a1a;
+      --muted: #999;
+      --accent: #dc4c3e;
+      --p1: #dc4c3e;
+      --p2: #e08c52;
+      --p3: #7c6af7;
+      --p4: #aaa;
+      --tag-bg: #eef0f5;
+      --tag-text: #5b6478;
+      --tag-active-bg: #dc4c3e;
+      --tag-active-text: #fff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+
+    .mock-note {
+      background: #fff7d6;
+      border: 1px solid #e6d77a;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #5a4a00;
+    }
+    .mock-note b { color: #3a2e00; }
+
+    .layout {
+      display: flex;
+      height: calc(100vh - 41px);
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 0;
+    }
+    #sidebar h1 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      padding: 18px 14px 10px;
+    }
+
+    #projects-nav {
+      padding: 2px 6px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      padding: 12px 10px 4px;
+    }
+
+    .nav-due-btn, .nav-all-btn, .nav-tag-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 15px;
+      text-align: left;
+      margin-bottom: 1px;
+      font-family: inherit;
+    }
+    .nav-tag-btn .tag-hash { color: var(--accent); font-weight: 600; }
+    .nav-tag-btn .nav-label { flex: 1; }
+    .nav-tag-btn:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+    .nav-tag-btn.active { color: var(--text); font-weight: 600; background: rgba(0,0,0,0.06); }
+    .nav-tag-btn.active .tag-hash { color: var(--accent); }
+
+    .nav-due-btn:hover, .nav-all-btn:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+    .nav-due-btn.active, .nav-all-btn.active { color: var(--text); font-weight: 600; background: rgba(0,0,0,0.06); }
+    .nav-due-icon {
+      font-size: 13px;
+      color: var(--accent);
+      width: 14px;
+      text-align: center;
+    }
+    .nav-count {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .nav-count.due-urgent { color: var(--p1); font-weight: 600; }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 4px;
+    }
+
+    /* タグの階層: 親タグの下に小さくぶら下げる */
+    .nav-tag-btn.child {
+      padding-left: 24px;
+      font-size: 14px;
+    }
+    .nav-tag-btn.child .tag-hash { font-size: 13px; }
+
+    .nav-add-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      width: 100%;
+      font-family: inherit;
+    }
+    .nav-add-btn:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+
+    /* ── Main ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #main-header {
+      padding: 20px 28px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+    }
+    #main-header h2 { font-size: 18px; font-weight: 700; }
+    .header-tag-hash { color: var(--accent); }
+
+    #add-btn {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      font-weight: 600;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #task-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 28px 28px;
+      max-width: 820px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin: 20px 0 8px;
+    }
+    .section-count {
+      margin-left: auto;
+      font-size: 11px;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+    }
+
+    /* ── Task items ── */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      margin-bottom: 2px;
+      cursor: grab;
+      transition: background 0.1s, opacity 0.15s;
+      position: relative;
+    }
+    .task-item:hover { background: var(--surface); border-color: var(--border); }
+    .task-item:hover .task-actions { opacity: 1; }
+
+    .task-check {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .task-check:hover { border-color: var(--accent); }
+    .task-check.checked { background: var(--accent); border-color: var(--accent); }
+    .task-check.checked::after { content: '✓'; color: #fff; font-size: 10px; }
+
+    .task-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .task-name { font-size: 16px; line-height: 1.3; }
+
+    .task-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .tag-pill {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tag-pill:hover { background: #dde0e8; }
+    .tag-pill .hash { color: var(--accent); font-weight: 600; }
+
+    .task-meta {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .badge.P1 { background: #fde8e6; color: var(--p1); }
+    .badge.P2 { background: #fdf0e6; color: var(--p2); }
+    .badge.P3 { background: #eeeaff; color: var(--p3); }
+    .badge.P4 { background: #f0f0f0; color: var(--p4); }
+
+    .due { font-size: 12px; color: var(--muted); }
+    .due.overdue { color: var(--p1); }
+
+    /* ── 削除ボタン: 2段階 ── */
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.12s;
+      flex-shrink: 0;
+    }
+    .task-action-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background 0.1s, color 0.1s;
+    }
+    .task-action-btn:hover { background: var(--border); color: var(--text); }
+    .task-action-btn.danger:hover { color: var(--p1); background: rgba(220,76,62,0.12); }
+    .task-action-btn.undo:hover { color: var(--p3); background: rgba(124,106,247,0.12); }
+
+    /* ── 削除予定の状態（横線 + 薄く） ── */
+    .task-item.pending-delete {
+      background: #fdf3f2;
+      border-color: #f5c2bd;
+    }
+    .task-item.pending-delete .task-actions { opacity: 1; }
+    .task-item.pending-delete .task-name {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .task-item.pending-delete .task-tags { opacity: 0.5; }
+
+    /* ── 完了済み（既存のdone） ── */
+    .task-item.done { opacity: 0.4; }
+    .task-item.done .task-name {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    /* ── キャプション ── */
+    .caption {
+      margin: 32px 28px 8px;
+      max-width: 820px;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+    .caption b { color: var(--text); }
+    .caption code {
+      background: var(--tag-bg);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .arrow-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      margin: 6px 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .arrow-row .arrow { font-size: 18px; color: var(--accent); }
+    .arrow-row .step { font-size: 13px; color: var(--muted); }
+    .arrow-row .step b { color: var(--text); }
+
+    /* タグ入力プレビュー */
+    .tag-input-preview {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .tag-input-preview .typed { color: var(--text); }
+    .tag-input-preview .suggest {
+      background: var(--tag-bg);
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    .tag-input-preview .suggest .hash { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="mock-note">
+    <b>📐 UIモックアップ（クリック可動作はサンプル動作のみ）</b>　— カテゴリ → タグ移行 ＆ 2段階削除のデザイン案
+  </div>
+
+  <div class="layout">
+    <!-- ── サイドバー ── -->
+    <div id="sidebar">
+      <h1>NEO TODO</h1>
+      <div id="projects-nav">
+        <button class="nav-due-btn">
+          <span class="nav-due-icon">◷</span>
+          <span style="flex:1">今日締め切り</span>
+          <span class="nav-count due-urgent">3</span>
+        </button>
+        <button class="nav-due-btn">
+          <span class="nav-due-icon">◻</span>
+          <span style="flex:1">1週間以内</span>
+          <span class="nav-count">7</span>
+        </button>
+        <div class="nav-divider"></div>
+        <button class="nav-all-btn active">
+          <span style="flex:1">すべて</span>
+          <span class="nav-count">42</span>
+        </button>
+
+        <div class="nav-section-label">タグ</div>
+
+        <button class="nav-tag-btn">
+          <span class="tag-hash">#</span><span class="nav-label">マーサー</span>
+          <span class="nav-count">18</span>
+        </button>
+        <button class="nav-tag-btn child">
+          <span class="tag-hash">#</span><span class="nav-label">Mercer-AI</span>
+          <span class="nav-count">5</span>
+        </button>
+        <button class="nav-tag-btn child">
+          <span class="tag-hash">#</span><span class="nav-label">Mercer-Admin</span>
+          <span class="nav-count">3</span>
+        </button>
+        <button class="nav-tag-btn child">
+          <span class="tag-hash">#</span><span class="nav-label">Mercer-BD</span>
+          <span class="nav-count">4</span>
+        </button>
+        <button class="nav-tag-btn child">
+          <span class="tag-hash">#</span><span class="nav-label">Mercer-BM</span>
+          <span class="nav-count">2</span>
+        </button>
+        <button class="nav-tag-btn child">
+          <span class="tag-hash">#</span><span class="nav-label">Mercer-考えること</span>
+          <span class="nav-count">3</span>
+        </button>
+        <button class="nav-tag-btn child">
+          <span class="tag-hash">#</span><span class="nav-label">精算</span>
+          <span class="nav-count">1</span>
+        </button>
+
+        <button class="nav-tag-btn">
+          <span class="tag-hash">#</span><span class="nav-label">Private</span>
+          <span class="nav-count">8</span>
+        </button>
+        <button class="nav-tag-btn">
+          <span class="tag-hash">#</span><span class="nav-label">Google本</span>
+          <span class="nav-count">4</span>
+        </button>
+        <button class="nav-tag-btn">
+          <span class="tag-hash">#</span><span class="nav-label">SNSネタ</span>
+          <span class="nav-count">6</span>
+        </button>
+        <button class="nav-tag-btn">
+          <span class="tag-hash">#</span><span class="nav-label">飲みに行く</span>
+          <span class="nav-count">3</span>
+        </button>
+        <button class="nav-tag-btn">
+          <span class="tag-hash">#</span><span class="nav-label">アプリアイデア</span>
+          <span class="nav-count">7</span>
+        </button>
+
+        <div class="nav-divider"></div>
+        <button class="nav-add-btn">＋ タグを追加</button>
+      </div>
+    </div>
+
+    <!-- ── メイン ── -->
+    <div id="main">
+      <div id="main-header">
+        <h2><span class="header-tag-hash">#</span>マーサー</h2>
+        <button id="add-btn">+ 追加</button>
+      </div>
+
+      <div id="task-list">
+        <!-- 通常タスク -->
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div class="task-body">
+            <span class="task-name">クライアント定例の資料準備</span>
+            <div class="task-tags">
+              <span class="tag-pill"><span class="hash">#</span>マーサー</span>
+              <span class="tag-pill"><span class="hash">#</span>Mercer-BD</span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="due overdue">2026-05-04</span>
+            <span class="badge P1">P1</span>
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn danger" onclick="markPending(this)" title="削除">×</button>
+          </div>
+        </div>
+
+        <!-- 削除予定の状態（pending-delete）-->
+        <div class="task-item pending-delete">
+          <div class="task-check"></div>
+          <div class="task-body">
+            <span class="task-name">古い見積りファイル整理</span>
+            <div class="task-tags">
+              <span class="tag-pill"><span class="hash">#</span>マーサー</span>
+              <span class="tag-pill"><span class="hash">#</span>Mercer-Admin</span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="badge P3">P3</span>
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn undo" onclick="undoPending(this)" title="戻す">↶</button>
+            <button class="task-action-btn danger" onclick="finalDelete(this)" title="完全に削除">🗑</button>
+          </div>
+        </div>
+
+        <!-- 通常タスク（複数タグ） -->
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div class="task-body">
+            <span class="task-name">AI事業提案 v2 をレビュー</span>
+            <div class="task-tags">
+              <span class="tag-pill"><span class="hash">#</span>マーサー</span>
+              <span class="tag-pill"><span class="hash">#</span>Mercer-AI</span>
+              <span class="tag-pill"><span class="hash">#</span>Mercer-考えること</span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="due">2026-05-08</span>
+            <span class="badge P2">P2</span>
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn danger" onclick="markPending(this)" title="削除">×</button>
+          </div>
+        </div>
+
+        <!-- 通常タスク（タグ1つ） -->
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div class="task-body">
+            <span class="task-name">交通費の精算（4月分）</span>
+            <div class="task-tags">
+              <span class="tag-pill"><span class="hash">#</span>精算</span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="badge P4">P4</span>
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn danger" onclick="markPending(this)" title="削除">×</button>
+          </div>
+        </div>
+
+        <!-- 完了済み（既存のdone状態 — 削除とは別） -->
+        <div class="section-title">完了済み <span class="section-count">2</span></div>
+        <div class="task-item done">
+          <div class="task-check checked"></div>
+          <div class="task-body">
+            <span class="task-name">月次レポート提出</span>
+            <div class="task-tags">
+              <span class="tag-pill"><span class="hash">#</span>マーサー</span>
+              <span class="tag-pill"><span class="hash">#</span>Mercer-Admin</span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="badge P2">P2</span>
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn danger" onclick="markPending(this)" title="削除">×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 解説キャプション -->
+      <div class="caption">
+        <b>1. カテゴリ → タグへの移行</b><br>
+        ・サイドバーの<b>タグ一覧</b>で絞り込み（#マーサーをクリックすると配下のタスクが出る）<br>
+        ・タスク行に<b>タグpill</b>を表示。1タスクに複数タグOK（例: <code>#マーサー</code> + <code>#Mercer-AI</code>）<br>
+        ・既存のカテゴリは全てタグ名に自動変換（<code>マーサー → #マーサー</code>、<code>Mercer-AI → #Mercer-AI</code>...）<br>
+        ・親子関係（<code>マーサー > Mercer-AI</code>）は サイドバーのインデント表示で表現（タグ自体はフラット）
+      </div>
+
+      <div class="caption">
+        <b>2. 2段階削除フロー</b>
+        <div class="arrow-row">
+          <span class="step">通常時：行末に <b>×</b>（hover時のみ表示）</span>
+          <span class="arrow">→</span>
+          <span class="step">クリックで<b>横線（pending-delete）</b>状態に</span>
+          <span class="arrow">→</span>
+          <span class="step"><b>↶ 戻す</b> または <b>🗑 完全削除</b></span>
+        </div>
+        ・pending-delete状態は<b>薄ピンク背景＋横線</b>で「削除予約中」を視覚化<br>
+        ・<code>↶</code> で取り消し（誤操作防止）／ <code>🗑</code> で確定削除（モーダル確認なし）<br>
+        ・既存の「完了（◯チェック）」とは独立。完了は <code>archive.md</code> 行き、削除は完全消去
+      </div>
+
+      <div class="caption">
+        <b>3. タスク追加時のタグ入力（イメージ）</b><br>
+        モーダル内で「タスク名」フィールドに <code>#</code> を入力すると候補がサジェストされる:
+        <div class="tag-input-preview">
+          <span class="typed">交通費精算 #マ</span>
+          <span style="color:var(--muted)">|</span>
+          <span class="suggest"><span class="hash">#</span>マーサー</span>
+          <span class="suggest"><span class="hash">#</span>Mercer-Admin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function markPending(btn) {
+      const item = btn.closest('.task-item');
+      item.classList.add('pending-delete');
+      btn.parentElement.innerHTML = `
+        <button class="task-action-btn undo" onclick="undoPending(this)" title="戻す">↶</button>
+        <button class="task-action-btn danger" onclick="finalDelete(this)" title="完全に削除">🗑</button>
+      `;
+    }
+    function undoPending(btn) {
+      const item = btn.closest('.task-item');
+      item.classList.remove('pending-delete');
+      btn.parentElement.innerHTML = `
+        <button class="task-action-btn danger" onclick="markPending(this)" title="削除">×</button>
+      `;
+    }
+    function finalDelete(btn) {
+      const item = btn.closest('.task-item');
+      item.style.transition = 'opacity 0.2s, transform 0.2s';
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(20px)';
+      setTimeout(() => item.remove(), 200);
+    }
+  </script>
+</body>
+</html>
