@@ -6,10 +6,11 @@
   <title>NEO TODO</title>
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NEO TODO">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div id="busy-indicator"></div>
@@ -29,6 +30,7 @@
         <h2 id="main-title">すべて</h2>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
+        <button id="settings-btn" onclick="openSettings()" title="GitHub接続設定">⚙</button>
         <div id="sort-bar" class="sort-bar">
           <button class="sort-btn" data-sort="manual" onclick="setSort('manual')" title="自分で並び替え（ドラッグで順番変更）">⠿<span class="hide-mobile"> 並び替え</span></button>
           <button class="sort-btn" data-sort="added" onclick="setSort('added')" title="追加した順（古い順）">追加</button>
@@ -116,6 +118,6 @@
 
   <button id="fab" onclick="openAddModal()">+</button>
 
-  <script type="module" src="app.js?v=2"></script>
+  <script type="module" src="app.js?v=3"></script>
 </body>
 </html>

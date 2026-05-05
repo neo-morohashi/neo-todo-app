@@ -6,7 +6,7 @@ import {
   loadAll, getTasks, getTags,
   createTask, updateTask, deleteTask, reorderTasks,
   createTag, updateTag, deleteTag, reorderTagsConfig,
-} from './gh.js?v=2';
+} from './gh.js?v=3';
 
 // ── State ────────────────────────────────────────
 let allTasks = [];
