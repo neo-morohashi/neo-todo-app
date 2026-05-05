@@ -4,23 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>NEO TODO</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NEO TODO">
-  <link rel="stylesheet" href="/static/style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
+  <div id="busy-indicator"></div>
+
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
   <div id="sidebar">
     <div id="sidebar-header">
       <h1>NEO TODO</h1>
-      <a id="tunnel-url" class="tunnel-url hidden" target="_blank"></a>
     </div>
-    <nav id="tags-nav">
-      <!-- rendered by JS -->
-    </nav>
+    <nav id="tags-nav"></nav>
   </div>
 
   <div id="main">
@@ -31,10 +30,10 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div id="sort-bar" class="sort-bar">
-          <button class="sort-btn" data-sort="manual" onclick="setSort('manual')" title="自分で並び替えるモード（ドラッグで順番を変更）">⠿ 並び替え</button>
+          <button class="sort-btn" data-sort="manual" onclick="setSort('manual')" title="自分で並び替え（ドラッグで順番変更）">⠿<span class="hide-mobile"> 並び替え</span></button>
           <button class="sort-btn" data-sort="added" onclick="setSort('added')" title="追加した順（古い順）">追加</button>
           <button class="sort-btn" data-sort="due" onclick="setSort('due')" title="期限が早い順">期限</button>
-          <button class="sort-btn" data-sort="priority" onclick="setSort('priority')" title="優先度 P1→P4 順">優先</button>
+          <button class="sort-btn" data-sort="priority" onclick="setSort('priority')" title="優先度 P1→P4">優先</button>
           <button class="sort-btn" data-sort="tag" onclick="setSort('tag')" title="タグでグルーピング">タグ</button>
         </div>
         <button id="add-btn" onclick="openAddModal()">+ 追加</button>
@@ -49,9 +48,9 @@
       <h2>タスクを追加</h2>
       <input id="new-name" type="text" placeholder="タスク名">
       <div class="tag-edit-block">
-        <label>タグ</label>
-        <input id="new-tags" type="text" placeholder="#tag1 #tag2 (スペース区切り)">
-        <div id="new-tags-preview" class="tags-preview"></div>
+        <label>タグ（タップで追加/削除）</label>
+        <div id="new-tags-chips" class="tags-chips"></div>
+        <input id="new-tag-input" type="text" placeholder="新しいタグ名 → Enter">
       </div>
       <div class="row">
         <select id="new-priority">
@@ -76,9 +75,9 @@
       <h2>タスクを編集</h2>
       <input id="edit-name" type="text">
       <div class="tag-edit-block">
-        <label>タグ</label>
-        <input id="edit-tags" type="text" placeholder="#tag1 #tag2">
-        <div id="edit-tags-preview" class="tags-preview"></div>
+        <label>タグ（タップで追加/削除）</label>
+        <div id="edit-tags-chips" class="tags-chips"></div>
+        <input id="edit-tag-input" type="text" placeholder="新しいタグ名 → Enter">
       </div>
       <div class="row">
         <select id="edit-priority">
@@ -97,8 +96,26 @@
     </div>
   </div>
 
+  <!-- Settings (PAT) Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>GitHub 接続設定</h2>
+      <p class="settings-help">
+        neo-todo データを読み書きするには <b>GitHub Personal Access Token</b> が必要です。<br>
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">PATを発行</a> →
+        Repository access: <code>neo-morohashi/neo-todo</code> → Permissions: <code>Contents: Read and write</code>
+      </p>
+      <input id="settings-token" type="password" placeholder="ghp_... もしくは github_pat_...">
+      <div id="settings-error" class="settings-error"></div>
+      <div class="modal-actions">
+        <button class="danger" onclick="logoutSettings()">PAT削除</button>
+        <button class="primary" onclick="saveSettings()">保存</button>
+      </div>
+    </div>
+  </div>
+
   <button id="fab" onclick="openAddModal()">+</button>
 
-  <script src="/static/app.js?v=28"></script>
+  <script type="module" src="app.js?v=2"></script>
 </body>
 </html>
