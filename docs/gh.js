@@ -272,7 +272,7 @@ export async function createTask({ name, tags = [], priority = null, due = null 
     pending_delete: false,
   };
   const tasks = parseAllTasks(state.inbox.content);
-  tasks.push(t);
+  tasks.unshift(t);
   await saveInbox(tasks, 'add task');
 }
 
