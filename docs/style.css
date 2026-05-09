@@ -327,6 +327,10 @@ body {
   cursor: pointer;
   transition: background 0.1s, opacity 0.15s;
   position: relative;
+  /* Prevent iOS callout / text-select interfering with long-press drag */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .task-item:hover { background: var(--surface); border-color: var(--border); }
 .task-item.focused {
