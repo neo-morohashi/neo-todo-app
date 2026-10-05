@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NEO TODO">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <div id="busy-indicator"></div>
@@ -33,6 +33,7 @@
         <h2 id="main-title">すべて</h2>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
+        <a id="voice-btn" href="voice.html" title="音声で追加">🎤</a>
         <button id="settings-btn" onclick="openSettings()" title="GitHub接続設定">⚙</button>
         <div id="sort-bar" class="sort-bar">
           <button class="sort-btn" data-sort="manual" onclick="setSort('manual')" title="自分で並び替え（ドラッグで順番変更）">⠿<span class="hide-mobile"> 並び替え</span></button>

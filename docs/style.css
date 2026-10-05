@@ -262,6 +262,17 @@ body {
 }
 #settings-btn:hover { color: var(--text); border-color: #bbb; }
 
+#voice-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  line-height: 1;
+  text-decoration: none;
+}
+#voice-btn:hover { border-color: #bbb; }
+
 #task-list {
   flex: 1;
   overflow-y: auto;

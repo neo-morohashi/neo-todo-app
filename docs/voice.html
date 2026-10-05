@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>音声でTODO追加</title>
+  <link rel="manifest" href="voice.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#dc4c3e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="TODO音声">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --bg: #faf8f5;
+      --surface: #ffffff;
+      --border: #e2ddd7;
+      --text: #1a1a1a;
+      --muted: #8c8680;
+      --accent: #dc4c3e;
+      --ok: #2e9e63;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 32px 20px calc(32px + env(safe-area-inset-bottom));
+      text-align: center;
+      overscroll-behavior: none;
+    }
+
+    /* ── Mic ── */
+    #mic {
+      width: 150px; height: 150px;
+      border: none; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 58px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 10px 28px rgba(220, 76, 62, .32);
+      transition: transform .15s ease, background .2s ease;
+      flex: none;
+    }
+    #mic:active { transform: scale(.96); }
+    body[data-state="listening"] #mic { animation: pulse 1.4s ease-in-out infinite; }
+    body[data-state="saving"]    #mic { background: #c9a227; }
+    body[data-state="done"]      #mic { background: var(--ok); box-shadow: 0 10px 28px rgba(46, 158, 99, .3); }
+    body[data-state="error"]     #mic { background: #777; box-shadow: none; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1);    box-shadow: 0 10px 28px rgba(220, 76, 62, .32); }
+      50%      { transform: scale(1.07); box-shadow: 0 10px 40px rgba(220, 76, 62, .5); }
+    }
+
+    #status { font-size: 15px; color: var(--muted); min-height: 1.4em; }
+    #transcript {
+      font-size: 22px; font-weight: 600; line-height: 1.5;
+      min-height: 1.5em; max-width: 520px; word-break: break-word;
+    }
+    #transcript.interim { color: var(--muted); font-weight: 500; }
+
+    /* ── Parsed meta chips ── */
+    #meta { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 28px; }
+    .chip {
+      font-size: 13px; padding: 4px 11px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border); color: #5b6478;
+    }
+    .chip.due { background: #eef3ff; border-color: #ccd9f5; color: #2e5aac; }
+    .chip.p1  { background: #fdeceb; border-color: #f6c8c3; color: var(--accent); }
+    .chip.p2  { background: #fdf2e8; border-color: #f3d8bb; color: #c06a23; }
+    .chip.p3  { background: #f0eeff; border-color: #d6d0f8; color: #5a4ad1; }
+    .chip.p4  { background: #f2f2f2; border-color: #e0e0e0; color: #777; }
+
+    /* ── Actions ── */
+    #actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+    #actions button {
+      font-size: 16px; padding: 14px; border-radius: 12px; font-family: inherit;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    }
+    #actions button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    #actions:empty { display: none; }
+    a { color: var(--accent); }
+    .hint { font-size: 12.5px; color: var(--muted); line-height: 1.7; max-width: 360px; }
+  </style>
+</head>
+<body data-state="init">
+  <button id="mic" type="button" aria-live="polite">🎤</button>
+  <div id="transcript"></div>
+  <div id="meta"></div>
+  <div id="status">準備中…</div>
+  <div id="actions"></div>
+
+  <script type="module" src="voice.js?v=1"></script>
+</body>
+</html>

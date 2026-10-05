@@ -1,0 +1,25 @@
+{
+  "id": "neo-todo-voice",
+  "name": "TODO音声",
+  "short_name": "TODO音声",
+  "description": "1タップで音声からNEO TODOにタスクを追加",
+  "start_url": "./voice.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#dc4c3e",
+  "icons": [
+    {
+      "src": "icon-voice-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-voice-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -6,6 +6,15 @@
   "display": "standalone",
   "background_color": "#faf8f5",
   "theme_color": "#dc4c3e",
+  "shortcuts": [
+    {
+      "name": "音声で追加",
+      "short_name": "音声追加",
+      "description": "音声でタスクを追加する",
+      "url": "./voice.html",
+      "icons": [{ "src": "icon-voice-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "icon-192.png",
